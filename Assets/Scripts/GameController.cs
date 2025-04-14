@@ -17,7 +17,7 @@ public class GameController : MonoBehaviour
             GameObject Temp = Instantiate(EnemyObject);
             Temp.transform.position = new Vector3(Random.Range(-8, 8), Random.Range(-4, 4), 0);
         }
-
+    
         if (Input.GetMouseButtonDown(0))
         {
             RaycastHit hit;
