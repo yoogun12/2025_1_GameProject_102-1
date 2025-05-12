@@ -139,8 +139,7 @@ public class FruitGame : MonoBehaviour
 
         for (int i = 0; i < allFruits.Length; i++)
         {
-            if (allFruits[i] != null)
-            {
+
                 Rigidbody2D rb = allFruits[i].GetComponent<Rigidbody2D>();
                 //과일이 정지 상태이고 높은 위치에 있다면
                 if (rb != null && rb.velocity.magnitude < 0.1f && allFruits[i].transform.position.y > gameOverHeight)
@@ -150,7 +149,7 @@ public class FruitGame : MonoBehaviour
                     Debug.Log("게임 오버");
 
                     break;
-                }
+                
             }
         }
     }
