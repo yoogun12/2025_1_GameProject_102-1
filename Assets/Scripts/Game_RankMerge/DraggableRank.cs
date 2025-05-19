@@ -18,16 +18,80 @@ public class DraggableRank : MonoBehaviour
     public SpriteRenderer spriteRenderer;       //계급장 이미지 렌더러
     public GameManager gamemanager;           //게임 매니저
 
+    private void Awake()
+    {
+        //필요한 컴포넌트 참조 가져오기
+        mainCamera = Camera.main;
+        spriteRenderer = GetComponent<SpriteRenderer>();
+        gamemanager = FindObjectOfType<GameManager>();
+    }
+
+
     // Start is called before the first frame update
     void Start()
     {
-        
+        originalPosition = transform.position;
     }
 
     // Update is called once per frame
     void Update()
     {
-        
+        if (isDragging)
+        {
+            Vector3 targetPosition = GetMouseWorldPosition() + dragOffset;
+            transform.position = Vector3.Lerp(transform.position, targetPosition, dragSpeed * Time.deltaTime);
+        }
+        else if (transform.position != originalPosition && currentCell != null)
+        {
+            transform.position = Vector3.Lerp(transform.position,originalPosition,snapBackSpeed * Time.deltaTime);
+        }
+    }
+
+    private void OnMouseDown()
+    {
+        StartDragging();
+    }
+
+    private void OnMouseUp()
+    {
+        if (!isDragging) return;
+        StopDragging();
+    }
+
+    void StartDragging()
+    {
+        isDragging = true;
+        dragOffset = transform.position - GetMouseWorldPosition();
+        spriteRenderer.sortingOrder = 10;
+    }
+
+    void StopDragging()
+    {
+        isDragging = false;
+        spriteRenderer.sortingOrder = 1;
+        GridCell targetCell = gamemanager.FindClosestCell(transform.position);
+
+        if(targetCell != null )
+        {
+            if(targetCell.currentRank == null)
+            {
+                MoveToCell(targetCell);
+            }
+            else if (targetCell.currentRank != this && targetCell.currentRank.rankLevel == rankLevel)
+            {
+             MergeWithCell(targetCell);   
+            }
+            else
+            {
+                ReturnToOriginalPosition();
+            }
+
+        }
+            else
+           {
+            ReturnToOriginalPosition();
+           }
+
     }
 
     public void MoveToCell(GridCell targetCell)     //특정 칸으로 이동
@@ -62,11 +126,11 @@ public class DraggableRank : MonoBehaviour
             currentCell.currentRank = null; //기존 칸에서 제거
         }
 
-        //합치기 실행 MergeRanks 함수를 통해서 실행
+        gamemanager.MergeRanks(this, targetCell.currentRank);
 
     }
 
-    public Vector2 GetMouseWorldPosition()                  //마우스 월드 좌표 구하기
+    public Vector3 GetMouseWorldPosition()                  //마우스 월드 좌표 구하기
     {
         Vector3 mousePos = Input.mousePosition; 
         mousePos.z = -mainCamera.transform.position.z;

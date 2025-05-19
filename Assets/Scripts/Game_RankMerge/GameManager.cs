@@ -44,16 +44,16 @@ public class GameManager : MonoBehaviour
     {
         InitializeGrid();
 
-        for(int i = 0; i < 4; i++)      //4개의 계급장 생성
-        {
-            SpawnNewRank();
-        }
+        
     }
 
     // Update is called once per frame
     void Update()
     {
-        
+     if(Input.GetKeyDown(KeyCode.D))
+        {
+            SpawnNewRank();
+        }
     }
 
     public DraggableRank CreateRankInCell(GridCell cell, int level)
@@ -109,5 +109,82 @@ public class GameManager : MonoBehaviour
         CreateRankInCell(emptyCell, rankLevel);     //3.계급장 생성 및 설정
 
         return true;
+    }
+
+
+    public GridCell FindClosestCell(Vector3 position)
+    {
+        for (int x = 0; x < gridWidth; x++)
+        {
+            for(int y = 0;y < gridHeight; y++)
+            {
+                if(grid[x,y].ContainPosition(position))
+                {
+                    return grid[x,y];
+                }
+            }
+        }
+
+        GridCell closestCell = null;
+        float closestDistance = float.MaxValue;
+
+        for(int x = 0;x < gridWidth; x++)
+        {
+            for(int y = 0; y < gridHeight; y++)
+            {
+                float distance = Vector3.Distance(position, grid[x,y].transform.position);
+                if (distance < closestDistance)
+                {
+                    closestDistance = distance;
+                    closestCell = grid[x,y];
+                }
+            }
+        }
+
+        if(closestDistance > cellSize * 2)
+        {
+            return null;
+        }
+
+        return closestCell;
+
+    }
+
+    public void MergeRanks(DraggableRank draggedRank, DraggableRank targetrank)
+    {
+        if(draggedRank == null || targetrank == null || draggedRank.rankLevel != targetrank.rankLevel)
+        {
+            if (draggedRank != null) draggedRank.ReturnToOriginalPosition();
+            return;
+        }
+
+        int newLevel = targetrank.rankLevel + 1;
+        if(newLevel > maxRankLevel)
+        {
+            RemoveRank(draggedRank);
+        }
+
+        targetrank.SetRankLevel(newLevel);
+        RemoveRank(draggedRank);
+
+        if(Random.Range(0,100) < 60)
+        {
+            SpawnNewRank();
+        }
+    }
+    
+    public void RemoveRank(DraggableRank rank)
+    {
+        if (rank == null) return;
+
+        if(rank.currentCell != null)
+        {
+            rank.currentCell.currentRank = null;
+
+         
+        }
+
+        Destroy(rank.gameObject);
+
     }
 }
